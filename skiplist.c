@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <math.h>
 #include "skiplist.h"
 
@@ -6,7 +7,7 @@ skiplist* skiplistCreate(void) {
     skiplist* l = (skiplist*)malloc(sizeof(*l));
     if (NULL == l) return NULL;
     l->level = 1;
-    l->header = skiplistCreateNode(SKIPLIST_MAXLEVEL, -1);
+    l->header = skiplistCreateNode(SKIPLIST_MAXLEVEL, -1, -1);
     if (NULL == l->header) {
         free(l);
         return NULL;
@@ -29,18 +30,18 @@ void skiplistFree(skiplist* l) {
     l = NULL;
 }
 
-skiplistNode* skiplistCreateNode(int level, int value) {
+skiplistNode* skiplistCreateNode(int level, int key, int value) {
     skiplistNode* node = (skiplistNode*)malloc(sizeof(*node) + level*sizeof(node));
     if (NULL == node) return NULL;
+    node->key = key;
     node->value = value;
     return node;
 }
 
 void skiplistFreeNode(skiplistNode* node) {
-    if (NULL != node) {
-        free(node);
-        node = NULL;
-    }
+    if (NULL == node) return;
+    free(node);
+    node = NULL;
 }
 
 /* Returns a random level for the new skiplist node we are going to create.
@@ -54,11 +55,11 @@ int skiplistRandomLevel(void) {
     return (level<SKIPLIST_MAXLEVEL) ? level : SKIPLIST_MAXLEVEL;
 }
 
-skiplistNode* skiplistInsert(skiplist* l, int value) {
+skiplistNode* skiplistInsert(skiplist* l, int key, int value) {
     skiplistNode *update[SKIPLIST_MAXLEVEL], *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i]->value < value)
+        while (p && p->forwards[i]->key < key)
             p = p->forwards[i];
         update[i] = p;
     }
@@ -68,7 +69,7 @@ skiplistNode* skiplistInsert(skiplist* l, int value) {
             update[i] = l->header;
         l->level = level;
     }
-    p = skiplistCreateNode(level, value);
+    p = skiplistCreateNode(level, key, value);
     if (NULL == p) return NULL;
     // insert the new node in all the level lists 
     for (i=0; i<level; i++) {
@@ -78,17 +79,17 @@ skiplistNode* skiplistInsert(skiplist* l, int value) {
     return p;
 }
 
-void skiplistDelete(skiplist* l, int value) {
+void skiplistDelete(skiplist* l, int key) {
     skiplistNode *update[SKIPLIST_MAXLEVEL], *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i]->value < value)
+        while (p && p->forwards[i]->key < key)
             p = p->forwards[i];
         update[i] = p;
     }
-    if (!p || p->forwards[0]->value != value) // not found
-        return;
     p = p->forwards[0];
+    if (!p || p->key != key) // not found
+        return;
     for (i=0; i<l->level; i++) {
         if (update[i]->forwards[i] == p)
             update[i]->forwards[i] = p->forwards[i];
@@ -98,3 +99,13 @@ void skiplistDelete(skiplist* l, int value) {
     skiplistFreeNode(p);
 }
 
+int skiplistSearch(skiplist* l, int key) {
+    skiplistNode *p = l->header;
+    int i;
+    for (i=l->level-1; i>=0; i--) {
+        while (p && p->forwards[i]->key < key)
+            p = p->forwards[i];
+    }
+    p = p->forwards[0];
+    return (p && p->key == key) ? p->value : -1;
+}
