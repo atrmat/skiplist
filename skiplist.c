@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "skiplist.h"
@@ -59,11 +60,12 @@ skiplistNode* skiplistInsert(skiplist* l, int key, int value) {
     skiplistNode *update[SKIPLIST_MAXLEVEL], *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i] && p->forwards[i]->key < key)
+        while (p->forwards[i] && p->forwards[i]->key < key)
             p = p->forwards[i];
         update[i] = p;
     }
     int level = skiplistRandomLevel();
+    //printf("key=%d, level=%d\n", key, level);
     if (level > l->level) {
         for (i=l->level; i<level; i++)
             update[i] = l->header;
@@ -83,7 +85,7 @@ void skiplistDelete(skiplist* l, int key) {
     skiplistNode *update[SKIPLIST_MAXLEVEL], *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i] && p->forwards[i]->key < key)
+        while (p->forwards[i] && p->forwards[i]->key < key)
             p = p->forwards[i];
         update[i] = p;
     }
@@ -94,19 +96,28 @@ void skiplistDelete(skiplist* l, int key) {
         if (update[i]->forwards[i] == p)
             update[i]->forwards[i] = p->forwards[i];
     }
-    while (l->level > 1 && NULL == l->header->forwards[i])
+    while (l->level > 1 && NULL == l->header->forwards[l->level - 1])
         l->level --;
     skiplistFreeNode(p);
 }
 
 skiplistNode* skiplistSearch(skiplist* l, int key) {
     skiplistNode *p = l->header;
-    int i;
+    int i, num = 0;
+    printf("key=%d path:", key);
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i] && p->forwards[i]->key < key)
+        while (p->forwards[i] && p->forwards[i]->key < key) {
             p = p->forwards[i];
+            num ++;
+            printf("%d -> ", p->key);
+        }
     }
     p = p->forwards[0];
+    if (p && p->key == key) {
+        printf("%d (times=%d)\n", key, num);
+    } else {
+        printf("not-found (times=%d)\n", num);
+    }
     //return (p && p->key == key) ? p->value : -1;
-    return p;
+    return (p && p->key == key) ? p : NULL;
 }
