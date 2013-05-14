@@ -59,7 +59,7 @@ skiplistNode* skiplistInsert(skiplist* l, int key, int value) {
     skiplistNode *update[SKIPLIST_MAXLEVEL], *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i]->key < key)
+        while (p && p->forwards[i] && p->forwards[i]->key < key)
             p = p->forwards[i];
         update[i] = p;
     }
@@ -83,7 +83,7 @@ void skiplistDelete(skiplist* l, int key) {
     skiplistNode *update[SKIPLIST_MAXLEVEL], *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i]->key < key)
+        while (p && p->forwards[i] && p->forwards[i]->key < key)
             p = p->forwards[i];
         update[i] = p;
     }
@@ -99,13 +99,14 @@ void skiplistDelete(skiplist* l, int key) {
     skiplistFreeNode(p);
 }
 
-int skiplistSearch(skiplist* l, int key) {
+skiplistNode* skiplistSearch(skiplist* l, int key) {
     skiplistNode *p = l->header;
     int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p && p->forwards[i]->key < key)
+        while (p && p->forwards[i] && p->forwards[i]->key < key)
             p = p->forwards[i];
     }
     p = p->forwards[0];
-    return (p && p->key == key) ? p->value : -1;
+    //return (p && p->key == key) ? p->value : -1;
+    return p;
 }
