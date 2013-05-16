@@ -5,22 +5,8 @@ int getNodeLevel(skiplistNode* forwards[]) {
     return sizeof(forwards) / sizeof(forwards[0]);
 }
 
-void printSkipListNode(skiplistNode* node) {
-    if (NULL == node) {
-        //printf("node is NULL\n");
-        return;
-    }
-    int i, level = getNodeLevel(node->forwards);
-    //printf("key=%d,value=%d,level=%d:", node->key, node->value, level);
-    for (i=0; i<level; i++) {
-        //printf("%d -> ", i+1);
-        if (NULL == node->forwards[i]) {
-            //printf("NULL");
-        } else {
-            //printf("key=%d,value=%d", node->forwards[i]->key, node->forwards[i]->value);
-        }
-    }
-    printf("\n");
+void printSkipListNode(int value) {
+    printf("node value:%d\n", value);
 }
 
 int main(int argc, char** srgv) {
@@ -33,7 +19,6 @@ int main(int argc, char** srgv) {
     int i;
     for (i=0; i<20; i++) {
         skiplistInsert(l, i, i*2);
-        //printf("key=%d, level=%d\n", i, l->level);
     }
     printSkipListNode(skiplistSearch(l, 10));
     printSkipListNode(skiplistSearch(l, 5));
@@ -41,7 +26,6 @@ int main(int argc, char** srgv) {
     printSkipListNode(skiplistSearch(l, 16));
     printSkipListNode(skiplistSearch(l, 17));
     skiplistDelete(l, 11);
-    printSkipListNode(skiplistSearch(l, 10));
     printSkipListNode(skiplistSearch(l, 11));
     skiplistFree(l);
     return 0;

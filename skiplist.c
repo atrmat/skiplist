@@ -65,7 +65,6 @@ skiplistNode* skiplistInsert(skiplist* l, int key, int value) {
         update[i] = p;
     }
     int level = skiplistRandomLevel();
-    //printf("key=%d, level=%d\n", key, level);
     if (level > l->level) {
         for (i=l->level; i<level; i++)
             update[i] = l->header;
@@ -101,23 +100,13 @@ void skiplistDelete(skiplist* l, int key) {
     skiplistFreeNode(p);
 }
 
-skiplistNode* skiplistSearch(skiplist* l, int key) {
+int skiplistSearch(skiplist* l, int key) {
     skiplistNode *p = l->header;
-    int i, num = 0;
-    printf("key=%d path:", key);
+    int i;
     for (i=l->level-1; i>=0; i--) {
-        while (p->forwards[i] && p->forwards[i]->key < key) {
+        while (p->forwards[i] && p->forwards[i]->key < key)
             p = p->forwards[i];
-            num ++;
-            printf("%d -> ", p->key);
-        }
     }
     p = p->forwards[0];
-    if (p && p->key == key) {
-        printf("%d (times=%d)\n", key, num);
-    } else {
-        printf("not-found (times=%d)\n", num);
-    }
-    //return (p && p->key == key) ? p->value : -1;
-    return (p && p->key == key) ? p : NULL;
+    return (p && p->key == key) ? p->value : -1;
 }
